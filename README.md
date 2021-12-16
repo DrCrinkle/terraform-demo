@@ -4,6 +4,8 @@ This is a terraform project that will set up a VPC with 3 public and 3 private s
 
 # instructions
 ```
+git clone https://github.com/DrCrinkle/terraform-demo.git
+cd terraform-demo
 terraform init
 terraform apply -var-file=./config/sample.tfvars
 ```
