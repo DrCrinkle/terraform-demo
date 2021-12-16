@@ -6,62 +6,24 @@ resource "aws_vpc" "main" {
   }
 }
 
-resource "aws_subnet" "public1" {
+resource "aws_subnet" "public" {
+  count      = 3
   vpc_id     = aws_vpc.main.id
-  cidr_block = var.subnet_cidr
+  cidr_block = cidrsubnet(var.vpc_cidr, 8, count.index)
 
   tags = {
-    Name = "taylor-tf-pub1-subnet"
+    Name = "taylor-tf-pub${count.index}-subnet"
     ENV  = var.env
   }
 }
 
-resource "aws_subnet" "public2" {
+resource "aws_subnet" "private" {
+  count      = 3
   vpc_id     = aws_vpc.main.id
-  cidr_block = var.subnet2_cidr
+  cidr_block = cidrsubnet(var.vpc_cidr, 8, count.index+3)
 
   tags = {
-    Name = "taylor-tf-pub2-subnet"
-    ENV  = var.env
-  }
-}
-
-resource "aws_subnet" "public3" {
-  vpc_id     = aws_vpc.main.id
-  cidr_block = var.subnet3_cidr
-
-  tags = {
-    Name = "taylor-tf-pub2-subnet"
-    ENV  = var.env
-  }
-}
-
-resource "aws_subnet" "private1" {
-  vpc_id     = aws_vpc.main.id
-  cidr_block = var.subnet4_cidr
-
-  tags = {
-    Name = "taylor-tf-priv1-subnet"
-    ENV  = var.env
-  }
-}
-
-resource "aws_subnet" "private2" {
-  vpc_id     = aws_vpc.main.id
-  cidr_block = var.subnet5_cidr
-
-  tags = {
-    Name = "taylor-tf-priv2-subnet"
-    ENV  = var.env
-  }
-}
-
-resource "aws_subnet" "private3" {
-  vpc_id     = aws_vpc.main.id
-  cidr_block = var.subnet6_cidr
-
-  tags = {
-    Name = "taylor-tf-priv3-subnet"
+    Name = "taylor-tf-priv${count.index}-subnet"
     ENV  = var.env
   }
 }
@@ -84,7 +46,7 @@ resource "aws_eip" "nat_eip" {
 
 resource "aws_nat_gateway" "nat" {
   allocation_id = aws_eip.nat_eip.id
-  subnet_id     = aws_subnet.public1.id
+  subnet_id     = aws_subnet.public[1].id
 
   tags = {
     Name = "taylor-tf-NAT-gateway"
@@ -121,32 +83,14 @@ resource "aws_route_table" "private_rt" {
   }
 }
 
-resource "aws_route_table_association" "pub1" {
-  subnet_id      = aws_subnet.public1.id
+resource "aws_route_table_association" "public" {
+  count          = 3
+  subnet_id      = aws_subnet.public[count.index].id
   route_table_id = aws_route_table.public_rt.id
 }
 
-resource "aws_route_table_association" "pub2" {
-  subnet_id      = aws_subnet.public2.id
-  route_table_id = aws_route_table.public_rt.id
-}
-
-resource "aws_route_table_association" "pub3" {
-  subnet_id      = aws_subnet.public3.id
-  route_table_id = aws_route_table.public_rt.id
-}
-
-resource "aws_route_table_association" "priv1" {
-  subnet_id      = aws_subnet.private1.id
-  route_table_id = aws_route_table.private_rt.id
-}
-
-resource "aws_route_table_association" "priv2" {
-  subnet_id      = aws_subnet.private2.id
-  route_table_id = aws_route_table.private_rt.id
-}
-
-resource "aws_route_table_association" "priv3" {
-  subnet_id      = aws_subnet.private3.id
+resource "aws_route_table_association" "private" {
+  count          = 3
+  subnet_id      = aws_subnet.private[count.index].id
   route_table_id = aws_route_table.private_rt.id
 }
