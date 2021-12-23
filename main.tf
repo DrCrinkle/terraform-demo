@@ -4,6 +4,12 @@ module "vpc" {
   env          = var.env
 }
 
+module "efs" {
+  source         = "./modules/efs"
+  subnets        = module.vpc.private_subnets
+  security_group = [module.autoscaling.security_group]
+}
+
 module "loadbalancer" {
   source       = "./modules/loadbalancer"
   vpc          = module.vpc.vpc_id
@@ -22,6 +28,7 @@ module "autoscaling" {
   subnets      = module.vpc.private_subnets
   target_group = module.loadbalancer.target_group_arn
   elb          = module.loadbalancer.elb
+  efs_dns      = module.efs.efs_dns
 }
 
 module "route53" {
