@@ -1,5 +1,8 @@
+data "aws_availability_zones" "available" {}
+
 resource "aws_vpc" "main" {
-  cidr_block = var.vpc_cidr
+  cidr_block           = var.vpc_cidr
+  enable_dns_hostnames = true
   tags = {
     Name = "Taylor-tf-vpc"
     ENV  = var.env
@@ -7,9 +10,10 @@ resource "aws_vpc" "main" {
 }
 
 resource "aws_subnet" "public" {
-  count      = 3
-  vpc_id     = aws_vpc.main.id
-  cidr_block = cidrsubnet(var.vpc_cidr, 8, count.index)
+  count             = 3
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = cidrsubnet(var.vpc_cidr, 8, count.index)
+  availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
 
   tags = {
     Name = "taylor-tf-pub${count.index}-subnet"
@@ -18,9 +22,10 @@ resource "aws_subnet" "public" {
 }
 
 resource "aws_subnet" "private" {
-  count      = 3
-  vpc_id     = aws_vpc.main.id
-  cidr_block = cidrsubnet(var.vpc_cidr, 8, count.index+3)
+  count             = 3
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = cidrsubnet(var.vpc_cidr, 8, count.index+3)
+  availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
 
   tags = {
     Name = "taylor-tf-priv${count.index}-subnet"
